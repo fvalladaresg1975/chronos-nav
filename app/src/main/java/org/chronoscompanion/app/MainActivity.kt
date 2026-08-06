@@ -79,7 +79,20 @@ class MainActivity : AppCompatActivity() {
         // closed and reopened - it only reacts to NEW state-change broadcasts, so
         // reopening the app showed the hardcoded "sin iniciar" text forever even while
         // already connected. Read the service's current state directly on resume.
-        applyStatus(ChronosBleService.status)
+        //
+        // ChronosBleService.status is a companion-object var that defaults to
+        // DISCONNECTED and is never reset - if the OS killed the whole app process
+        // (this phone's battery manager does that aggressively) and the service never
+        // got a chance to restart, that stale default reads as "Buscando el reloj..."
+        // even though nothing is actually running, which is misleading (and confusing
+        // together with "Cambiar de reloj" correctly refusing to work). Show a distinct
+        // "stopped" state instead whenever there's no live service instance.
+        if (ChronosBleService.instance == null) {
+            statusText.text = getString(R.string.status_prefix) + "Detenido"
+            (statusDot.background as GradientDrawable).setColor(ContextCompat.getColor(this, R.color.status_disconnected))
+        } else {
+            applyStatus(ChronosBleService.status)
+        }
         val savedName = getSharedPreferences(ChronosBleService.PREFS_NAME, Context.MODE_PRIVATE)
             .getString(ChronosBleService.PREF_DEVICE_NAME, null)
         applyDeviceName(savedName)
