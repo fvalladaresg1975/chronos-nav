@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Theme.ChronosCompanion" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+        <item name="colorPrimary">@color/chronos_primary</item>
+        <item name="colorPrimaryDark">@color/chronos_primary_dark</item>
+        <item name="colorAccent">@color/chronos_primary</item>
+        <item name="android:windowBackground">@color/chronos_bg_light</item>
+        <item name="android:statusBarColor">@color/chronos_bg_light</item>
+        <item name="android:windowLightStatusBar">true</item>
+        <item name="colorSurface">@color/chronos_surface_light</item>
+        <item name="colorOnSurface">@color/chronos_text_light</item>
+        <item name="android:textColorPrimary">@color/chronos_text_light</item>
+        <item name="android:textColorSecondary">@color/chronos_text_muted_light</item>
+    </style>
+</resources>

@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="chronos_primary">#00BFA5</color>
+    <color name="chronos_primary_dark">#00997F</color>
+    <color name="chronos_on_primary">#FFFFFF</color>
+
+    <color name="chronos_bg_light">#F5F7F8</color>
+    <color name="chronos_bg_dark">#12181A</color>
+    <color name="chronos_surface_light">#FFFFFF</color>
+    <color name="chronos_surface_dark">#1C2528</color>
+    <color name="chronos_text_light">#12181A</color>
+    <color name="chronos_text_dark">#E8F1EF</color>
+    <color name="chronos_text_muted_light">#5B6B6E</color>
+    <color name="chronos_text_muted_dark">#9BB0AD</color>
+
+    <color name="status_connected">#2ECC71</color>
+    <color name="status_connecting">#F5A623</color>
+    <color name="status_disconnected">#9AA5A8</color>
+    <color name="status_error">#E74C3C</color>
+
+    <color name="ic_launcher_background">#00997F</color>
+</resources>

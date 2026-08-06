@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Chronos Companion</string>
+
+    <string name="status_not_started">Estado del reloj: sin iniciar</string>
+    <string name="status_prefix">Estado del reloj: </string>
+
+    <string name="button_enable_notifications">1. Habilitar acceso a notificaciones</string>
+    <string name="button_connect">2. Conectar con el reloj</string>
+    <string name="button_change_device">Cambiar de reloj</string>
+    <string name="button_forget_device">Olvidar este reloj</string>
+
+    <string name="permissions_missing">Faltan permisos de Bluetooth para continuar</string>
+    <string name="status_starting">Estado del reloj: iniciando…</string>
+    <string name="discovery_searching">Buscando relojes cercanos…</string>
+    <string name="discovery_none_found">No se encontró ningún reloj Chronos cerca</string>
+    <string name="discovery_title">Elegí un reloj</string>
+    <string name="dialog_cancel">Cancelar</string>
+
+    <string name="info_text">Primero tocá el botón 1 y activá esta app en la lista de acceso a notificaciones. Después volvé y tocá el botón 2.\n\nUna vez conectado, el reloj recibe notificaciones (WhatsApp, SMS, etc.), navegación de Google Maps, clima y control de música — y podés detener la conexión en cualquier momento desde la notificación persistente.</string>
+</resources>
