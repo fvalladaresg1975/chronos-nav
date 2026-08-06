@@ -436,7 +436,7 @@ class ChronosBleService : Service() {
     // ---------------------------------------------------------------------
 
     @SuppressLint("MissingPermission")
-    private fun drainQueue() {
+    private fun drainQueue(retryCount: Int = 0) {
         if (writeInFlight) return
         if (writeQueue.isEmpty()) return
         val gatt = bluetoothGatt
@@ -455,11 +455,24 @@ class ChronosBleService : Service() {
         // (weather, navigation, everything) then got silently queued and never sent,
         // with no error logged. Force it back open after a timeout so the queue keeps
         // moving; the generation check no-ops this if the real callback still lands late.
+        //
+        // This used to just move on to the NEXT queued packet, silently dropping
+        // whichever one timed out - harmless for weather/notifications, but the very
+        // first packet after reconnect (time sync) hit exactly this timeout in testing,
+        // so the watch's clock never got corrected and nothing ever retried it. Put the
+        // packet back at the front of the queue instead, up to a few attempts, so a lost
+        // callback delays delivery rather than silently dropping it.
         mainHandler.postDelayed({
             if (writeInFlight && writeGeneration == myGeneration) {
-                Log.w(TAG, "Write callback timed out, resetting queue")
                 writeInFlight = false
-                drainQueue()
+                if (retryCount < 3) {
+                    Log.w(TAG, "Write callback timed out, retrying (attempt ${retryCount + 1})")
+                    writeQueue.addFirst(next)
+                    drainQueue(retryCount + 1)
+                } else {
+                    Log.e(TAG, "Write callback timed out $retryCount times, giving up on this packet")
+                    drainQueue()
+                }
             }
         }, 5000)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
@@ -565,6 +578,9 @@ class ChronosBleService : Service() {
                 enqueuePacket(ChronosProtocol.buildWeatherUvPressure(result.uvIndex, result.pressureHpa))
                 if (result.city.isNotEmpty()) {
                     enqueuePacket(ChronosProtocol.buildWeatherCity(result.city))
+                }
+                if (result.hourly.isNotEmpty()) {
+                    enqueuePacket(ChronosProtocol.buildWeatherHourly(result.hourly))
                 }
             }
         }.start()

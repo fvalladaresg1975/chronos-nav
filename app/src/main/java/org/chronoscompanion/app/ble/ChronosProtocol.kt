@@ -339,6 +339,34 @@ object ChronosProtocol {
         return buildPacket(0x7E, 0x01, payload.toByteArray(), header = 0xEA)
     }
 
+    /** One hour's forecast for [buildWeatherHourly]. [hour] is 0-23 (hour of day). */
+    data class HourlyData(val hour: Int, val icon: Int, val temp: Int, val windKmh: Int, val humidity: Int, val uv: Int)
+
+    /**
+     * Hourly forecast - uses the 0xEA header, command 0x7E, sub 0x02. Firmware parses:
+     * data[6]=count, data[7]=startHour, then 6 bytes per hour starting at data[8]:
+     * [(icon<<4)|signBit, abs(temp), windHi, windLo, humidity, uv]. [hours] must be
+     * sorted ascending by hour and (per the firmware's `hour+z` indexing) is assumed
+     * contiguous starting at its first entry's hour.
+     */
+    fun buildWeatherHourly(hours: List<HourlyData>): ByteArray {
+        if (hours.isEmpty()) return buildPacket(0x7E, 0x02, byteArrayOf(0, 0), header = 0xEA)
+        val sorted = hours.sortedBy { it.hour }
+        val payload = mutableListOf<Byte>()
+        payload.add(sorted.size.toByte())
+        payload.add(sorted.first().hour.toByte())
+        for (h in sorted) {
+            val signBit = if (h.temp < 0) 1 else 0
+            payload.add((((h.icon and 0x0F) shl 4) or signBit).toByte())
+            payload.add((kotlin.math.abs(h.temp) and 0xFF).toByte())
+            payload.add(((h.windKmh shr 8) and 0xFF).toByte())
+            payload.add((h.windKmh and 0xFF).toByte())
+            payload.add((h.humidity and 0xFF).toByte())
+            payload.add((h.uv and 0xFF).toByte())
+        }
+        return buildPacket(0x7E, 0x02, payload.toByteArray(), header = 0xEA)
+    }
+
     /** Splits a logical packet (as produced by [buildPacket]) into the chunks to send over BLE, in order. */
     fun chunk(logicalPacket: ByteArray): List<ByteArray> {
         if (logicalPacket.size <= 20) {

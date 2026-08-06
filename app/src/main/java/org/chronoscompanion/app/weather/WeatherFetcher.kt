@@ -25,7 +25,8 @@ object WeatherFetcher {
         val city: String,
         val days: List<ChronosProtocol.WeatherDay>, // index 0 = today
         val uvIndex: Int,
-        val pressureHpa: Int
+        val pressureHpa: Int,
+        val hourly: List<ChronosProtocol.HourlyData> // today's 24 hours, index = hour of day
     )
 
     @SuppressLint("MissingPermission")
@@ -80,7 +81,8 @@ object WeatherFetcher {
                 "https://api.open-meteo.com/v1/forecast?latitude=${location.latitude}&longitude=${location.longitude}" +
                     "&current=temperature_2m,weather_code,pressure_msl" +
                     "&daily=weather_code,temperature_2m_max,temperature_2m_min,uv_index_max" +
-                    "&forecast_days=7&timezone=auto"
+                    "&hourly=temperature_2m,weather_code,wind_speed_10m,relative_humidity_2m,uv_index" +
+                    "&forecast_days=7&forecast_hours=24&timezone=auto"
             )
             val conn = url.openConnection() as HttpURLConnection
             conn.connectTimeout = 10000
@@ -114,7 +116,28 @@ object WeatherFetcher {
             }
             val uvToday = uvArr.optDouble(0, 0.0).roundToInt()
 
-            Result(city = cityName(context, location), days = days, uvIndex = uvToday, pressureHpa = pressure)
+            val hourly = json.optJSONObject("hourly")?.let { h ->
+                val times = h.getJSONArray("time")
+                val temps = h.getJSONArray("temperature_2m")
+                val hcodes = h.getJSONArray("weather_code")
+                val winds = h.getJSONArray("wind_speed_10m")
+                val humidity = h.getJSONArray("relative_humidity_2m")
+                val uv = h.getJSONArray("uv_index")
+                (0 until times.length()).map { i ->
+                    // "time" is e.g. "2026-08-05T14:00" - hour-of-day is characters 11-12.
+                    val hourOfDay = times.getString(i).substring(11, 13).toInt()
+                    ChronosProtocol.HourlyData(
+                        hour = hourOfDay,
+                        icon = iconForWmoCode(hcodes.getInt(i)),
+                        temp = temps.getDouble(i).roundToInt(),
+                        windKmh = winds.getDouble(i).roundToInt(),
+                        humidity = humidity.getInt(i),
+                        uv = uv.optDouble(i, 0.0).roundToInt()
+                    )
+                }
+            } ?: emptyList()
+
+            Result(city = cityName(context, location), days = days, uvIndex = uvToday, pressureHpa = pressure, hourly = hourly)
         } catch (e: Exception) {
             Log.e(TAG, "Weather fetch failed: ${e.message}")
             null
